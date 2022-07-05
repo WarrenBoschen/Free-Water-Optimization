@@ -26,6 +26,8 @@ Adapted 20220630    Python adaptation by Warren Boschen
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+import matplotlib.animation as animation
+import matplotlib
 
 # Compartment fractions/weightings
 f_D0 = 1/4.0       # isotropic volume fraction
@@ -36,10 +38,10 @@ f_D3 = 1/4.0       # z-fiber volume fraction
 # Initial signal without diffusion weighting (arbritary units)
 S0 = 1.0
 
+#* Implement after video is working
 #* def dt(xx, yy, zz):
     #* return np.diag([xx, yy, zz])
 
-#* Implement after video is working
 #* DT0 = dt(2.0e-3, 2.0e-3, 2.0e-3) # Fiber 0 rank-2 isotropic diagonal tensor, DT0 in units of mm^2/s (free water contribution)
 #* DT1 = dt(1.7e-3, 0.2e-3, 0.2e-3) # Fiber 1 rank-2 anisotropic diagonal tensor, DT1 in units of mm^2/s (oriented along the x-axis)
 #* DT2 = dt(0.2e-3, 1.7e-3, 0.2e-3) # Fiber 2 rank-2 anisotropic diagonal tensor, DT2 in units of mm^2/s (oriented along the y-axis)
@@ -178,11 +180,11 @@ for k in range(b_value, b_value_stop, b_value_step): # Starting b-value, ending 
             Sx_S_sum[i, j] = np.cos(Phis[j])*np.sin(Thetas[i])*S_sum[i, j]
             Sy_S_sum[i, j] = np.sin(Phis[j])*np.sin(Thetas[i])*S_sum[i, j]
             Sz_S_sum[i, j] = np.cos(Thetas[i])*S_sum[i, j]
+    b_value = b_value + b_value_step
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
     ax.plot_surface(Sx_Sb_D0, Sy_Sb_D0, Sz_Sb_D0)
-    plt.show()
-    b_value = b_value + b_value_step
+plt.show()
 
 # S_cart_D0 = []
 # for a in range(len(Thetas) - 1):
