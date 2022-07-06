@@ -19,15 +19,27 @@ the gradient orientation (also may include T1 and T2 relaxation) for
 for a voxel with an isotropic compartment and two orthogonal fibers
 
 Created	20220624	by T. H. Mareci
-Edited  20220627  Added video of b-value dependence
-Adapted 20220630    Python adaptation by Warren Boschen
+Edited  20220627    Added video of b-value dependence
+Adapted 20220706    Python adaptation by Warren Boschen
 """
 
 import numpy as np
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-import matplotlib.animation as animation
-import matplotlib
+import os
+import ffmpeg
+# from mpl_toolkits.mplot3d import Axes3D
+
+def dt(xx, yy, zz):
+    return np.diag([xx, yy, zz])
+
+DT0 = dt(2.0e-3, 2.0e-3, 2.0e-3) # Fiber 0 rank-2 isotropic diagonal tensor, DT0 in units of mm^2/s (free water contribution)
+DT1 = dt(1.7e-3, 0.2e-3, 0.2e-3) # Fiber 1 rank-2 anisotropic diagonal tensor, DT1 in units of mm^2/s (oriented along the x-axis)
+DT2 = dt(0.2e-3, 1.7e-3, 0.2e-3) # Fiber 2 rank-2 anisotropic diagonal tensor, DT2 in units of mm^2/s (oriented along the y-axis)
+DT3 = dt(0.2e-3, 0.2e-3, 1.7e-3) # Fiber 3 rank-2 anisotropic diagonal tensor, DT3 in units of mm^2/s (oriented along the z-axis)
+
+# Estimated maximum DW signal for D0 (used for scaling surface plot)
+D0_avg = (DT0[0, 0] + DT0[1,1] + DT0[2, 2])/3
+# D0_S_max = S0*np.exp(-b_value*D0_avg)
 
 # Compartment fractions/weightings
 f_D0 = 1/4.0       # isotropic volume fraction
@@ -37,75 +49,6 @@ f_D3 = 1/4.0       # z-fiber volume fraction
 
 # Initial signal without diffusion weighting (arbritary units)
 S0 = 1.0
-
-#* Implement after video is working
-#* def dt(xx, yy, zz):
-    #* return np.diag([xx, yy, zz])
-
-#* DT0 = dt(2.0e-3, 2.0e-3, 2.0e-3) # Fiber 0 rank-2 isotropic diagonal tensor, DT0 in units of mm^2/s (free water contribution)
-#* DT1 = dt(1.7e-3, 0.2e-3, 0.2e-3) # Fiber 1 rank-2 anisotropic diagonal tensor, DT1 in units of mm^2/s (oriented along the x-axis)
-#* DT2 = dt(0.2e-3, 1.7e-3, 0.2e-3) # Fiber 2 rank-2 anisotropic diagonal tensor, DT2 in units of mm^2/s (oriented along the y-axis)
-#* DT3 = dt(0.2e-3, 0.2e-3, 1.7e-3) # Fiber 3 rank-2 anisotropic diagonal tensor, DT3 in units of mm^2/s (oriented along the z-axis)
-
-# Fiber 0 rank-2 isotropic diagonal tensor, DT0 in units of mm^2/s
-# Free water contribution
-
-D0_xx = 2.0e-3
-D0_xy = 0.0
-D0_xz = 0.0
-D0_yy = 2.0e-3
-D0_yz = 0.0
-D0_zz = 2.0e-3
-DT0 = np.array([[D0_xx, D0_xy, D0_xz], [D0_xy, D0_yy, D0_yz], [D0_xz, D0_yz, D0_zz]])
-
-# Estimated maximum DW signal for D0 (used for scaling surface plot)
-D0_avg = (D0_xx + D0_yy + D0_zz)/3 #* D0_avg = (DT0[1, 1] + DT0[2, 2] + DT0[3, 3])/3
-# D0_S_max = S0*np.exp(-b_value*D0_avg)
-
-# Fiber 1 rank-2 anisotropic diagonal tensor, DT1 in units of mm^2/s
-# Oriented along the x-axis
-
-D1_xx = 1.7e-3
-D1_xy = 0.0
-D1_xz = 0.0
-D1_yy = 0.2e-3
-D1_yz = 0.0
-D1_zz = 0.2e-3
-DT1 = np.array([[D1_xx, D1_xy, D1_xz], [D1_xy, D1_yy, D1_yz],[D1_xz, D1_yz, D1_zz]])
-
-# Estimated maximum DW signal for D1 (used for scaling surface plot)
-# Assuming D1_zz is the lowest rate of diffusion
-# D1_S_max = S0*np.exp(-b_value*D1_zz)
-
-# Fiber 2 rank-2 anisotropic diagonal tensor, DT2 in units of mm^2/s
-# Oriented along the y-axis
-
-D2_xx = 0.2e-3
-D2_xy = 0.0
-D2_xz = 0.0
-D2_yy = 1.7e-3
-D2_yz = 0.0
-D2_zz = 0.2e-3
-DT2 = np.array([[D2_xx, D2_xy, D2_xz], [D2_xy, D2_yy, D2_yz],[D2_xz, D2_yz, D2_zz]])
-
-# Estimated maximum DW signal for D2 (used for scaling surface plot)
-# Assuming D2_zz is the lowest rate of diffusion
-# D2_S_max = S0*np.exp(-b_value*D2_zz)
-
-# Fiber 3 rank-2 anisotropic diagonal tensor, DT3 in units of mm^2/s
-# Oriented along the z-axis
-
-D3_xx = 0.2e-3
-D3_xy = 0.0
-D3_xz = 0.0
-D3_yy = 0.2e-3
-D3_yz = 0.0
-D3_zz = 1.7e-3
-DT3 = np.array([[D3_xx, D3_xy, D3_xz], [D3_xy, D3_yy, D3_yz],[D3_xz, D3_yz, D3_zz]])
-
-# Estimated maximum DW signal for D3 (used for scaling surface plot)
-# Assuming D3_zz is the lowest rate of diffusion
-# D3_S_max = S0*np.exp(-b_value*D3_zz)
 
 # Gradient unit vector directions
 Thetas = np.linspace(0, np.pi, 100)   # Polar angle iterations
@@ -140,6 +83,8 @@ b_value = 500
 b_value_stop = 3000
 b_value_step = 50
 
+counter_array = ['%.2d' % a for a in range(50)] # Generate array used for labelling video frames with the number of b-values
+counter = 0
 for k in range(b_value, b_value_stop, b_value_step): # Starting b-value, ending b-value, b-value increment size. All in s/mm^2
     for i in range(len(Thetas) - 1):
         for j in range(len(Phis) - 1):
@@ -181,20 +126,64 @@ for k in range(b_value, b_value_stop, b_value_step): # Starting b-value, ending 
             Sy_S_sum[i, j] = np.sin(Phis[j])*np.sin(Thetas[i])*S_sum[i, j]
             Sz_S_sum[i, j] = np.cos(Thetas[i])*S_sum[i, j]
     b_value = b_value + b_value_step
-    fig = plt.figure()
+    
+    """
+    Figure 1: Surface plot of Sx_Sb_D0, Sy_Sb_D0, and Sz_Sb_D0
+    Figure 2: Surface plot of Sx_Sb_D1, Sy_Sb_D1, and Sz_Sb_D1
+    Figure 3: Surface plot of Sx_Sb_D2, Sy_Sb_D2, and Sz_Sb_D2
+    Figure 4: Surface plot of Sx_Sb_D3, Sy_Sb_D3, and Sz_Sb_D3
+    Figure 5: Surface plot of Sx_S_Sum, Sy_S_sum, and Sz_S_sum (weighted sum of D0-3)
+    """
+    
+    fig = plt.figure(1)
     ax = fig.add_subplot(111, projection='3d')
     ax.plot_surface(Sx_Sb_D0, Sy_Sb_D0, Sz_Sb_D0)
-plt.show()
+    ax.set(xlim=(-0.7, 0.7), ylim=(-0.7, 0.7), zlim=(-0.7, 0.7))
+    if not os.path.exists(r'C:\Users\warrenboschen\Desktop\Free-Water-Optimization\DW_signal_frames\frames_D0\frame{}_D0.png'.format(counter_array[counter])):
+        plt.savefig(r'C:\Users\warrenboschen\Desktop\Free-Water-Optimization\DW_signal_frames\frames_D0\frame{}_D0.png'.format(counter_array[counter]))
+    
+    fig = plt.figure(2)
+    ax = fig.add_subplot(111, projection='3d')
+    ax.plot_surface(Sx_Sb_D1, Sy_Sb_D1, Sz_Sb_D1)
+    ax.set(xlim=(-0.7, 0.7), ylim=(-0.7, 0.7), zlim=(-0.7, 0.7))
+    if not os.path.exists(r'C:\Users\warrenboschen\Desktop\Free-Water-Optimization\DW_signal_frames\frames_D1\frame{}_D1.png'.format(counter_array[counter])):
+        plt.savefig(r'C:\Users\warrenboschen\Desktop\Free-Water-Optimization\DW_signal_frames\frames_D1\frame{}_D1.png'.format(counter_array[counter]))
+    
+    fig = plt.figure(3)
+    ax = fig.add_subplot(111, projection='3d')
+    ax.plot_surface(Sx_Sb_D2, Sy_Sb_D2, Sz_Sb_D2)
+    ax.set(xlim=(-0.7, 0.7), ylim=(-0.7, 0.7), zlim=(-0.7, 0.7))
+    if not os.path.exists(r'C:\Users\warrenboschen\Desktop\Free-Water-Optimization\DW_signal_frames\frames_D2\frame{}_D2.png'.format(counter_array[counter])):
+        plt.savefig(r'C:\Users\warrenboschen\Desktop\Free-Water-Optimization\DW_signal_frames\frames_D2\frame{}_D2.png'.format(counter_array[counter]))
+    
+    fig = plt.figure(4)
+    ax = fig.add_subplot(111, projection='3d')
+    ax.plot_surface(Sx_Sb_D2, Sy_Sb_D2, Sz_Sb_D3)
+    ax.set(xlim=(-0.7, 0.7), ylim=(-0.7, 0.7), zlim=(-0.7, 0.7))
+    if not os.path.exists(r'C:\Users\warrenboschen\Desktop\Free-Water-Optimization\DW_signal_frames\frames_D3\frame{}_D3.png'.format(counter_array[counter])):
+        plt.savefig(r'C:\Users\warrenboschen\Desktop\Free-Water-Optimization\DW_signal_frames\frames_D3\frame{}_D3.png'.format(counter_array[counter]))
+    
+    fig = plt.figure(5)
+    ax = fig.add_subplot(111, projection='3d')
+    ax.plot_surface(Sx_S_sum, Sy_S_sum, Sz_S_sum)
+    ax.set(xlim=(-0.7, 0.7), ylim=(-0.7, 0.7), zlim=(-0.7, 0.7))
+    if not os.path.exists(r'C:\Users\warrenboschen\Desktop\Free-Water-Optimization\DW_signal_frames\frames_sum\frame{}_sum.png'.format(counter_array[counter])):
+        plt.savefig(r'C:\Users\warrenboschen\Desktop\Free-Water-Optimization\DW_signal_frames\frames_sum\frame{}_sum.png'.format(counter_array[counter]))
 
-# S_cart_D0 = []
-# for a in range(len(Thetas) - 1):
-#     for b in range(len(Phis) - 1):
-#         S_cart_D0.append([Sx_Sb_D0[a, b], Sy_Sb_D0[a, b], Sz_Sb_D0[a, b]])
+    counter = counter + 1
 
-"""
-Figure 1: Surface plot of Sx_Sb_D0, Sy_Sb_D0, and Sz_Sb_D0
-Figure 2: Surface plot of Sx_Sb_D1, Sy_Sb_D1, and Sz_Sb_D1
-Figure 3: Surface plot of Sx_Sb_D2, Sy_Sb_D2, and Sz_Sb_D2
-Figure 4: Surface plot of Sx_Sb_D3, Sy_Sb_D3, and Sz_Sb_D3
-Figure 5: Surface plot of Sx_S_Sum, Sy_S_sum, and Sz_S_sum (weighted sum of D0-3)
-"""
+# Create videos
+os.chdir(r'C:\Users\warrenboschen\Desktop\Free-Water-Optimization\DW_signal_frames\frames_D0')
+os.system("ffmpeg -framerate 10 -i frame%02d_D0.png -c:v libx264 -pix_fmt yuv420p surf_D0.mp4")
+
+os.chdir(r'C:\Users\warrenboschen\Desktop\Free-Water-Optimization\DW_signal_frames\frames_D1')
+os.system("ffmpeg -framerate 10 -i frame%02d_D1.png -c:v libx264 -pix_fmt yuv420p surf_D1.mp4")
+
+os.chdir(r'C:\Users\warrenboschen\Desktop\Free-Water-Optimization\DW_signal_frames\frames_D2')
+os.system("ffmpeg -framerate 10 -i frame%02d_D2.png -c:v libx264 -pix_fmt yuv420p surf_D2.mp4")
+
+os.chdir(r'C:\Users\warrenboschen\Desktop\Free-Water-Optimization\DW_signal_frames\frames_D3')
+os.system("ffmpeg -framerate 10 -i frame%02d_D3.png -c:v libx264 -pix_fmt yuv420p surf_D3.mp4")
+
+os.chdir(r'C:\Users\warrenboschen\Desktop\Free-Water-Optimization\DW_signal_frames\frames_sum')
+os.system("ffmpeg -framerate 10 -i frame%02d_sum.png -c:v libx264 -pix_fmt yuv420p surf_sum.mp4")
