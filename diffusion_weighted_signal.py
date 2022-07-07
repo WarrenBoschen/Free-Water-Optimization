@@ -20,17 +20,14 @@ for a voxel with an isotropic compartment and two orthogonal fibers
 
 Created	20220624	by T. H. Mareci
 Edited  20220627    Added video of b-value dependence
-Adapted 20220706    Python adaptation by Warren Boschen
+Adapted 20220707    Python adaptation by Warren Boschen
 """
 
 import numpy as np
 import matplotlib.pyplot as plt
 import os
+from tensor_rotation import *
 import ffmpeg
-# from mpl_toolkits.mplot3d import Axes3D
-
-def dt(xx, yy, zz):
-    return np.diag([xx, yy, zz])
 
 DT0 = dt(2.0e-3, 2.0e-3, 2.0e-3) # Fiber 0 rank-2 isotropic diagonal tensor, DT0 in units of mm^2/s (free water contribution)
 DT1 = dt(1.7e-3, 0.2e-3, 0.2e-3) # Fiber 1 rank-2 anisotropic diagonal tensor, DT1 in units of mm^2/s (oriented along the x-axis)
