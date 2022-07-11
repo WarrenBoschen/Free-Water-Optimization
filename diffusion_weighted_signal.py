@@ -20,7 +20,7 @@ for a voxel with an isotropic compartment and two orthogonal fibers
 
 Created	20220624	by T. H. Mareci
 Edited  20220627    Added video of b-value dependence
-Adapted 20220707    Python adaptation by Warren Boschen
+Adapted 20220711    Python adaptation by Warren Boschen
 """
 
 import numpy as np
@@ -49,7 +49,7 @@ S0 = 1.0
 
 # Gradient unit vector directions
 Thetas = np.linspace(0, np.pi, 100)   # Polar angle iterations
-Phis = np.linspace(0, 2*np.pi, 100) # Azimuthal angle iterations
+Phis = np.linspace(0, 2*np.pi, 100)   # Azimuthal angle iterations
 
 # Calculate diffusion weighted signal and surface plot values
 
