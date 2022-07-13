@@ -26,18 +26,22 @@ Adapted 20220711    Python adaptation by Warren Boschen
 import numpy as np
 import matplotlib.pyplot as plt
 import os
-from tensor_rotation import *
 import ffmpeg
 import shutil
+import time
+from general_functions import *
+
+start = time.time()
 
 # Delete previously generated images and videos
+#* CHANGE TO APPROPRIATE FOLDERS
 shutil.rmtree(r'C:\Users\warrenboschen\Desktop\Free-Water-Optimization\DW_signal_frames_generalized\frames_D0')
 shutil.rmtree(r'C:\Users\warrenboschen\Desktop\Free-Water-Optimization\DW_signal_frames_generalized\frames_D1')
 shutil.rmtree(r'C:\Users\warrenboschen\Desktop\Free-Water-Optimization\DW_signal_frames_generalized\frames_sum')
 
 DT0 = dt(2.0e-3, 2.0e-3, 2.0e-3) # Rank-2 isotropic diagonal tensor, DT0 in units of mm^2/s (free water contribution)
 DT =  dt(0.2e-3, 0.2e-3, 1.7e-3) # Single fiber rank-2 anisotropic diagonal tensor, DT1 in units of mm^2/s (oriented along the z-axis)
-DT1 = rotate(DT, np.pi/3, np.pi/7, (5*np.pi)/4)  # Rotated DT. Angles correspond to rotation along the x-, y-, and z-axes respectively
+DT1 = rotate(DT, np.pi/3, np.pi/7, (5*np.pi)/4)  # Rotated DT. Angles correspond to rotation along the z-, y-, and z-axes respectively
 
 # Compartment fractions/weightings
 f_D0 = 0/2.0       # isotropic volume fraction
@@ -74,6 +78,8 @@ b_value_step = 50
 # Video initialization
 counter_array = ['%.2d' % a for a in range(50)] # Generate array used for labelling video frames with the number of b-values
 counter = 0
+
+#* CHANGE TO APPROPRIATE FOLDERS
 os.mkdir(r'C:\Users\warrenboschen\Desktop\Free-Water-Optimization\DW_signal_frames_generalized\frames_D0')  # Create folder for isotropic frames
 os.mkdir(r'C:\Users\warrenboschen\Desktop\Free-Water-Optimization\DW_signal_frames_generalized\frames_D1')  # Create folder for anisotropic frames
 os.mkdir(r'C:\Users\warrenboschen\Desktop\Free-Water-Optimization\DW_signal_frames_generalized\frames_sum') # Create folder for weighted sum frames
@@ -114,13 +120,12 @@ for k in range(b_value, b_value_stop, b_value_step): # Starting b-value, ending 
     Figure 3: Surface plot of Sx_S_Sum, Sy_S_sum, and Sz_S_sum (weighted sum)
     """
     
+    #* CHANGE TO APPROPRIATE FOLDERS
     fig = plt.figure(1)
-    ax = fig.add_subplot(111, projection='3d')
+    ax = fig.axes(projection='3d')
     ax.plot_surface(Sx_Sb_D0, Sy_Sb_D0, Sz_Sb_D0)
     ax.set(xlim=(-0.7, 0.7), ylim=(-0.7, 0.7), zlim=(-0.7, 0.7))
-    ax.set_xlabel('X')
-    ax.set_ylabel('Y')
-    ax.set_zlabel('Z')
+    ax.set_xlabel('X'), ax.set_ylabel('Y'), ax.set_zlabel('Z')
     plt.savefig(r'C:\Users\warrenboschen\Desktop\Free-Water-Optimization\DW_signal_frames_generalized\frames_D0\frame{}_D0.png'.format(counter_array[counter]))
     
     fig = plt.figure(2)
@@ -144,6 +149,7 @@ for k in range(b_value, b_value_stop, b_value_step): # Starting b-value, ending 
     counter = counter + 1
 
 # Create videos
+# #* CHANGE TO APPROPRIATE FOLDERS
 os.chdir(r'C:\Users\warrenboschen\Desktop\Free-Water-Optimization\DW_signal_frames_generalized\frames_D0')
 os.system("ffmpeg -framerate 10 -i frame%02d_D0.png -c:v libx264 -pix_fmt yuv420p surf_D0.mp4")
 
@@ -152,3 +158,7 @@ os.system("ffmpeg -framerate 10 -i frame%02d_D1.png -c:v libx264 -pix_fmt yuv420
 
 os.chdir(r'C:\Users\warrenboschen\Desktop\Free-Water-Optimization\DW_signal_frames_generalized\frames_sum')
 os.system("ffmpeg -framerate 10 -i frame%02d_sum.png -c:v libx264 -pix_fmt yuv420p surf_sum.mp4")
+
+end = time.time()
+print(end - start)
+# Time elapsed using PNGs as frames: 833s or ~14min

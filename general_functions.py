@@ -7,8 +7,6 @@ Created 20220711 by Warren Boschen
 
 import numpy as np
 import matplotlib.pyplot as plt
-import os
-import ffmpeg
 
 # Define a diagonal diffusion tensor based on its eigenvalues
 def dt(xx, yy, zz):

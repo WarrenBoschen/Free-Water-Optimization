@@ -26,7 +26,7 @@ Adapted 20220711    Python adaptation by Warren Boschen
 import numpy as np
 import matplotlib.pyplot as plt
 import os
-from tensor_rotation import *
+from general_functions import *
 import ffmpeg
 
 DT0 = dt(2.0e-3, 2.0e-3, 2.0e-3) # Fiber 0 rank-2 isotropic diagonal tensor, DT0 in units of mm^2/s (free water contribution)
