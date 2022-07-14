@@ -73,74 +73,82 @@ Video Initialization
 Video 1: Surface plot of Sx_Sb_D0, Sy_Sb_D0, and Sz_Sb_D0
 Video 2: Surface plot of Sx_Sb_D1, Sy_Sb_D1, and Sz_Sb_D1
 Video 3: Surface plot of Sx_S_Sum, Sy_S_sum, and Sz_S_sum (weighted sum)
+
+* Fix the one slice that is missing in every video.
 """
-# metadata_D0 = dict(title='Surface Plots of D0', artist='Warren Boschen')
-# writer = FFMpegWriter(fps=10, metadata=metadata_D0)
-# fig_D0 = plt.figure(1)    
+metadata_D0 = dict(title='Surface Plots of D0', artist='Warren Boschen')
+writer = FFMpegWriter(fps=10, metadata=metadata_D0)
+fig_D0 = plt.figure(1)    
 
-# with writer.saving(fig_D0, "surf_D0.mp4", len(Thetas) - 1):
-#     for k in range(b_value, b_value_stop, b_value_step): # Starting b-value, ending b-value, b-value increment size. All in s/mm^2
-#         ax = fig_D0.add_subplot(111, projection='3d')
-#         ax.set(xlim=(-0.7, 0.7), ylim=(-0.7, 0.7), zlim=(-0.7, 0.7))
-#         ax.set_xlabel('X'), ax.set_ylabel('Y'), ax.set_zlabel('Z')
-#         for i in range(len(Thetas) - 1):
-#             for j in range(len(Phis) - 1):
-#                 # Create gradient unit vector (g_unit) and traponse (g_unit_T)
-#                 g_unit = np.array([[np.cos(Phis[j])*np.sin(Thetas[i])], [np.sin(Phis[j])*np.sin(Thetas[i])], [np.cos(Thetas[i])]])
-#                 g_unit_T = np.transpose(g_unit)
+#? Printing out Sb_D0 reveals that there is an extra column and an extra row of 0s. Why?
+with writer.saving(fig_D0, "surf_D0.mp4", len(Thetas) - 1):
+    for k in range(b_value, b_value_stop + b_value_step, b_value_step): # Starting b-value, ending b-value, b-value increment size. All in s/mm^2
+        ax = fig_D0.add_subplot(111, projection='3d')
+        ax.set(xlim=(-0.7, 0.7), ylim=(-0.7, 0.7), zlim=(-0.7, 0.7))
+        ax.set_xlabel('X'), ax.set_ylabel('Y'), ax.set_zlabel('Z')
+        for i in range(len(Thetas) - 1):
+            for j in range(len(Phis) - 1):
+                # Create gradient unit vector (g_unit) and traponse (g_unit_T)
+                g_unit = np.array([[np.cos(Phis[j])*np.sin(Thetas[i])], [np.sin(Phis[j])*np.sin(Thetas[i])], [np.cos(Thetas[i])]])
+                g_unit_T = np.transpose(g_unit)
                 
-#                 # DW signal
-#                 Sb_D0[i, j] = S0*np.exp(-b_value * np.matmul(np.matmul(g_unit_T, DT0), g_unit))
+                # DW signal
+                Sb_D0[i, j] = S0*np.exp(-b_value * np.matmul(np.matmul(g_unit_T, DT0), g_unit))
                 
-#                 # Surface plot values for D0
-#                 Sx_Sb_D0[i, j] = np.cos(Phis[j])*np.sin(Thetas[i])*Sb_D0[i, j]
-#                 Sy_Sb_D0[i, j] = np.sin(Phis[j])*np.sin(Thetas[i])*Sb_D0[i, j]
-#                 Sz_Sb_D0[i, j] = np.cos(Thetas[i])*Sb_D0[i, j]
-#         b_value = b_value + b_value_step
-#         ax.plot_surface(Sx_Sb_D0, Sy_Sb_D0, Sz_Sb_D0)
-#         writer.grab_frame()
-
-# b_value = 500
-# metadata_D1 = dict(title='Surface Plots of D1', artist='Warren Boschen')
-# writer = FFMpegWriter(fps=10, metadata=metadata_D1)
-# fig_D1 = plt.figure(2)    
-
-# with writer.saving(fig_D1, "surf_D1.mp4", len(Thetas) - 1):
-#     for k in range(b_value, b_value_stop, b_value_step): # Starting b-value, ending b-value, b-value increment size. All in s/mm^2
-#         ax = fig_D1.add_subplot(111, projection='3d')
-#         ax.set(xlim=(-0.7, 0.7), ylim=(-0.7, 0.7), zlim=(-0.7, 0.7))
-#         ax.set_xlabel('X'), ax.set_ylabel('Y'), ax.set_zlabel('Z')
-#         for i in range(len(Thetas) - 1):
-#             for j in range(len(Phis) - 1):
-#                 # Create gradient unit vector (g_unit) and traponse (g_unit_T)
-#                 g_unit = np.array([[np.cos(Phis[j])*np.sin(Thetas[i])], [np.sin(Phis[j])*np.sin(Thetas[i])], [np.cos(Thetas[i])]])
-#                 g_unit_T = np.transpose(g_unit)
-                
-#                 # DW signal
-#                 Sb_D1[i, j] = S0*np.exp(-b_value * np.matmul(np.matmul(g_unit_T, DT1), g_unit))
-                
-#                 # Surface plot values for D1
-#                 Sx_Sb_D1[i, j] = np.cos(Phis[j])*np.sin(Thetas[i])*Sb_D1[i, j]
-#                 Sy_Sb_D1[i, j] = np.sin(Phis[j])*np.sin(Thetas[i])*Sb_D1[i, j]
-#                 Sz_Sb_D1[i, j] = np.cos(Thetas[i])*Sb_D1[i, j]
-#         b_value = b_value + b_value_step
-#         ax.plot_surface(Sx_Sb_D1, Sy_Sb_D1, Sz_Sb_D1)
-#         writer.grab_frame()
+                # Surface plot values for D0
+                Sx_Sb_D0[i, j] = np.cos(Phis[j])*np.sin(Thetas[i])*Sb_D0[i, j]
+                Sy_Sb_D0[i, j] = np.sin(Phis[j])*np.sin(Thetas[i])*Sb_D0[i, j]
+                Sz_Sb_D0[i, j] = np.cos(Thetas[i])*Sb_D0[i, j]
+        b_value = b_value + b_value_step
+        ax.plot_surface(Sx_Sb_D0, Sy_Sb_D0, Sz_Sb_D0)
+        writer.grab_frame()
 
 b_value = 500
-S_sum = f_D0*Sb_D0 + f_D1*Sb_D1
+metadata_D1 = dict(title='Surface Plots of D1', artist='Warren Boschen')
+writer = FFMpegWriter(fps=10, metadata=metadata_D1)
+fig_D1 = plt.figure(2)    
+
+#? Printing out Sb_D1 reveals that there is an extra column and an extra row of 0s. Why?
+with writer.saving(fig_D1, "surf_D1.mp4", len(Thetas) - 1):
+    for k in range(b_value, b_value_stop + b_value_step, b_value_step): # Starting b-value, ending b-value, b-value increment size. All in s/mm^2
+        ax = fig_D1.add_subplot(111, projection='3d')
+        ax.set(xlim=(-0.7, 0.7), ylim=(-0.7, 0.7), zlim=(-0.7, 0.7))
+        ax.set_xlabel('X'), ax.set_ylabel('Y'), ax.set_zlabel('Z')
+        for i in range(len(Thetas) - 1):
+            for j in range(len(Phis) - 1):
+                # Create gradient unit vector (g_unit) and traponse (g_unit_T)
+                g_unit = np.array([[np.cos(Phis[j])*np.sin(Thetas[i])], [np.sin(Phis[j])*np.sin(Thetas[i])], [np.cos(Thetas[i])]])
+                g_unit_T = np.transpose(g_unit)
+                
+                # DW signal
+                Sb_D1[i, j] = S0*np.exp(-b_value * np.matmul(np.matmul(g_unit_T, DT1), g_unit))
+                
+                # Surface plot values for D1
+                Sx_Sb_D1[i, j] = np.cos(Phis[j])*np.sin(Thetas[i])*Sb_D1[i, j]
+                Sy_Sb_D1[i, j] = np.sin(Phis[j])*np.sin(Thetas[i])*Sb_D1[i, j]
+                Sz_Sb_D1[i, j] = np.cos(Thetas[i])*Sb_D1[i, j]
+        b_value = b_value + b_value_step
+        ax.plot_surface(Sx_Sb_D1, Sy_Sb_D1, Sz_Sb_D1)
+        writer.grab_frame()
+
+b_value = 500
 metadata_sum = dict(title='Surface Plots of Weighted Sum', artist='Warren Boschen')
 writer = FFMpegWriter(fps=10, metadata=metadata_sum)
 fig_sum = plt.figure(3)
 
 #! The output of this code block is a video in which every frame depicts the weighted sum at b=3000.
+#! Sometimes it's quite colorful too depending on where ax =, ax.set(), and ax.set_label() are within the block.
 with writer.saving(fig_sum, "surf_sum.mp4", len(Thetas) - 1):
-    for k in range(b_value, b_value_stop, b_value_step): # Starting b-value, ending b-value, b-value increment size. All in s/mm^2
+    for k in range(b_value, b_value_stop + b_value_step, b_value_step): # Starting b-value, ending b-value, b-value increment size. All in s/mm^2 
         ax = fig_sum.add_subplot(111, projection='3d')
         ax.set(xlim=(-0.7, 0.7), ylim=(-0.7, 0.7), zlim=(-0.7, 0.7))
-        ax.set_xlabel('X'), ax.set_ylabel('Y'), ax.set_zlabel('Z')  
+        ax.set_xlabel('X'), ax.set_ylabel('Y'), ax.set_zlabel('Z')
+        print(b_value)
         for i in range(len(Thetas) - 1):
             for j in range(len(Phis) - 1):
+                #DW signal for weighted sum
+                S_sum[i, j] = f_D0*Sb_D0[i, j] + f_D1*Sb_D1[i, j]
+                
                 # Surface plot values for weighted sum
                 Sx_S_sum[i, j] = np.cos(Phis[j])*np.sin(Thetas[i])*S_sum[i, j]
                 Sy_S_sum[i, j] = np.sin(Phis[j])*np.sin(Thetas[i])*S_sum[i, j]
