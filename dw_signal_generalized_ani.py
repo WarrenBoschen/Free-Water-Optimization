@@ -44,7 +44,7 @@ S0 = 1.0
 f_D0 = 1/2.0       # isotropic volume fraction
 f_D1 = 1/2.0       # anisotropic fiber volume fraction
 
-# Gradient unit vector directions
+# The number of gradient unit vector directions
 Thetas = np.linspace(0, np.pi, 100)   # Polar angle iterations
 Phis = np.linspace(0, 2*np.pi, 100)   # Azimuthal angle iterations
 

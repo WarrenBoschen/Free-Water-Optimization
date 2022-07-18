@@ -45,9 +45,9 @@ Video 2: Surface plot of Sx_Sb_D1, Sy_Sb_D1, and Sz_Sb_D1
 Video 3: Surface plot of Sx_S_Sum, Sy_S_sum, and Sz_S_sum (weighted sum)
 """
 
-# ani('D0', 1.0, DT0, 100)
+ani('D0', 1.0, DT0, 100)
 ani('D1', 1.0, DT1, 100)
-# ani_multi(1.0, [DT0, DT1], [0.5, 0.5], 100) #! The data blows up almost instantly.
+ani_multi(1.0, [DT0, DT1], [0.5, 0.5], 100) #! The data blows up almost instantly.
 
 end = time.time()
 print(end - start)
