@@ -20,7 +20,7 @@ for a voxel with an isotropic compartment and two orthogonal fibers
 
 Created	20220624	by T. H. Mareci
 Edited  20220627    Added video of b-value dependence
-Adapted 20220713    Python adaptation by Warren Boschen
+Adapted 20220718    Python adaptation by Warren Boschen
 """
 
 import numpy as np
@@ -41,7 +41,7 @@ DT1 = rotate(DT, np.pi/3, np.pi/7, (5*np.pi)/4)  # Rotated DT. Angles correspond
 S0 = 1.0
 
 # Compartment fractions/weightings
-f_D0 = 0/2.0       # isotropic volume fraction
+f_D0 = 1/2.0       # isotropic volume fraction
 f_D1 = 1/2.0       # anisotropic fiber volume fraction
 
 # Gradient unit vector directions
@@ -73,21 +73,18 @@ Video Initialization
 Video 1: Surface plot of Sx_Sb_D0, Sy_Sb_D0, and Sz_Sb_D0
 Video 2: Surface plot of Sx_Sb_D1, Sy_Sb_D1, and Sz_Sb_D1
 Video 3: Surface plot of Sx_S_Sum, Sy_S_sum, and Sz_S_sum (weighted sum)
-
-* Fix the one slice that is missing in every video.
 """
 metadata_D0 = dict(title='Surface Plots of D0', artist='Warren Boschen')
 writer = FFMpegWriter(fps=10, metadata=metadata_D0)
 fig_D0 = plt.figure(1)    
 
-#? Printing out Sb_D0 reveals that there is an extra column and an extra row of 0s. Why?
-with writer.saving(fig_D0, "surf_D0.mp4", len(Thetas) - 1):
+with writer.saving(fig_D0, "surf_D0.mp4", len(Thetas)):
     for k in range(b_value, b_value_stop + b_value_step, b_value_step): # Starting b-value, ending b-value, b-value increment size. All in s/mm^2
         ax = fig_D0.add_subplot(111, projection='3d')
         ax.set(xlim=(-0.7, 0.7), ylim=(-0.7, 0.7), zlim=(-0.7, 0.7))
         ax.set_xlabel('X'), ax.set_ylabel('Y'), ax.set_zlabel('Z')
-        for i in range(len(Thetas) - 1):
-            for j in range(len(Phis) - 1):
+        for i in range(len(Thetas)):
+            for j in range(len(Phis)):
                 # Create gradient unit vector (g_unit) and traponse (g_unit_T)
                 g_unit = np.array([[np.cos(Phis[j])*np.sin(Thetas[i])], [np.sin(Phis[j])*np.sin(Thetas[i])], [np.cos(Thetas[i])]])
                 g_unit_T = np.transpose(g_unit)
@@ -108,14 +105,13 @@ metadata_D1 = dict(title='Surface Plots of D1', artist='Warren Boschen')
 writer = FFMpegWriter(fps=10, metadata=metadata_D1)
 fig_D1 = plt.figure(2)    
 
-#? Printing out Sb_D1 reveals that there is an extra column and an extra row of 0s. Why?
-with writer.saving(fig_D1, "surf_D1.mp4", len(Thetas) - 1):
+with writer.saving(fig_D1, "surf_D1.mp4", len(Thetas)):
     for k in range(b_value, b_value_stop + b_value_step, b_value_step): # Starting b-value, ending b-value, b-value increment size. All in s/mm^2
         ax = fig_D1.add_subplot(111, projection='3d')
         ax.set(xlim=(-0.7, 0.7), ylim=(-0.7, 0.7), zlim=(-0.7, 0.7))
         ax.set_xlabel('X'), ax.set_ylabel('Y'), ax.set_zlabel('Z')
-        for i in range(len(Thetas) - 1):
-            for j in range(len(Phis) - 1):
+        for i in range(len(Thetas)):
+            for j in range(len(Phis)):
                 # Create gradient unit vector (g_unit) and traponse (g_unit_T)
                 g_unit = np.array([[np.cos(Phis[j])*np.sin(Thetas[i])], [np.sin(Phis[j])*np.sin(Thetas[i])], [np.cos(Thetas[i])]])
                 g_unit_T = np.transpose(g_unit)
@@ -136,16 +132,15 @@ metadata_sum = dict(title='Surface Plots of Weighted Sum', artist='Warren Bosche
 writer = FFMpegWriter(fps=10, metadata=metadata_sum)
 fig_sum = plt.figure(3)
 
-#! The output of this code block is a video in which every frame depicts the weighted sum at b=3000.
-#! Sometimes it's quite colorful too depending on where ax =, ax.set(), and ax.set_label() are within the block.
-with writer.saving(fig_sum, "surf_sum.mp4", len(Thetas) - 1):
+#! Every surface plot of the weighted sum looks exactly the same (b=3000).
+#* The problem is that S_sum is being calculated from Sb_D0 and Sb_D1 exclusively when b=3000.
+with writer.saving(fig_sum, "surf_sum.mp4", len(Thetas)):
     for k in range(b_value, b_value_stop + b_value_step, b_value_step): # Starting b-value, ending b-value, b-value increment size. All in s/mm^2 
         ax = fig_sum.add_subplot(111, projection='3d')
         ax.set(xlim=(-0.7, 0.7), ylim=(-0.7, 0.7), zlim=(-0.7, 0.7))
         ax.set_xlabel('X'), ax.set_ylabel('Y'), ax.set_zlabel('Z')
-        print(b_value)
-        for i in range(len(Thetas) - 1):
-            for j in range(len(Phis) - 1):
+        for i in range(len(Thetas)):
+            for j in range(len(Phis)):
                 #DW signal for weighted sum
                 S_sum[i, j] = f_D0*Sb_D0[i, j] + f_D1*Sb_D1[i, j]
                 
@@ -156,8 +151,11 @@ with writer.saving(fig_sum, "surf_sum.mp4", len(Thetas) - 1):
         b_value = b_value + b_value_step
         ax.plot_surface(Sx_S_sum, Sy_S_sum, Sz_S_sum)
         writer.grab_frame()
+# print(Sb_D0)
+# print(Sb_D1)
+# print(S_sum)
 
 end = time.time()
 print(end - start)
-# Time elapsed using PNGs as frames: 833s or ~14min
-# Time elapsed using writer.grab_frame(): 449s or ~7.5min
+# Time elapsed using PNGs as frames: ~14min
+# Time elapsed using writer.grab_frame(): ~7min
