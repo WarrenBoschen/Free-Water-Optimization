@@ -23,11 +23,6 @@ Edited  20220627    Added video of b-value dependence
 Adapted 20220718    Python adaptation by Warren Boschen
 """
 
-import numpy as np
-import matplotlib
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
-from matplotlib.animation import FFMpegWriter
 import time
 from general_functions import *
 
@@ -37,19 +32,11 @@ DT0 = dt(2.0e-3, 2.0e-3, 2.0e-3) # Rank-2 isotropic diagonal tensor, DT0 in unit
 DT =  dt(0.2e-3, 0.2e-3, 1.7e-3) # Single fiber rank-2 anisotropic diagonal tensor, DT1 in units of mm^2/s (oriented along the z-axis)
 DT1 = rotate(DT, np.pi/2, np.pi/4, np.pi/4)  # Rotated DT. Angles correspond to rotation along the z-, y-, and z-axes respectively
 
-"""
-Video Initialization
-
-Video 1: Surface plot of Sx_Sb_D0, Sy_Sb_D0, and Sz_Sb_D0
-Video 2: Surface plot of Sx_Sb_D1, Sy_Sb_D1, and Sz_Sb_D1
-Video 3: Surface plot of Sx_S_Sum, Sy_S_sum, and Sz_S_sum (weighted sum)
-"""
-
-ani('D0', 1.0, DT0, 100)
-ani('D1', 1.0, DT1, 100)
-ani_multi(1.0, [DT0, DT1], [0.5, 0.5], 100) #! The data blows up almost instantly.
+ani('D0', 1.0, DT0, 100, False)
+ani('D1', 1.0, DT1, 100, False) #? How do you make the vectors in the "foreground" of the video? Or at the very least mesh with the signal better.
+ani_multi(1.0, [DT0, DT1], [0.5, 0.5], 100)
 
 end = time.time()
 print(end - start)
 # Time elapsed using PNGs as frames: ~14min
-# Time elapsed using writer.grab_frame(): ~7min
+# Time elapsed using writer.grab_frame(): ~7-8min
