@@ -39,9 +39,9 @@ def rotate(tensor, psi, theta, phi):
     rot_psi = np.array([[np.cos(psi), -1*np.sin(psi), 0], [np.sin(psi), np.cos(psi), 0], [0, 0, 1]])           # Rotation matrix of tensor around the z-axis (occurs first)
     rot_theta = np.array([[np.cos(theta), 0, np.sin(theta)], [0, 1, 0], [-1*np.sin(theta), 0, np.cos(theta)]]) # Rotation matrix of tensor around the y-axis (occurs second)
     rot_phi = np.array([[np.cos(phi), -1*np.sin(phi), 0], [np.sin(phi), np.cos(phi), 0], [0, 0, 1]])           # Rotation matrix of tensor around the z-axis (occurs third)
-    rot = rot_phi @ rot_theta @ rot_psi  # Multiply each of the rotation matrices together
-    rot_T = np.transpose(rot)    # Transpose the rotation matrix
-    fiber = rot @ tensor @ rot_T # Find rotated tensor
+    rot1 = rot_psi @ (tensor @ np.transpose(rot_psi))   # Rotate the tensor by the angle psi.
+    rot2 = rot_theta @ (rot1 @ np.transpose(rot_theta)) # Rotate the tensor by the angle theta.
+    fiber = rot_phi @ (rot2 @ np.transpose(rot_phi))    # Rotate the tensor by the angle phi.
     return fiber
 
 """
@@ -96,11 +96,11 @@ def ani(name, S0, fiber, size, eig):
                 x_eig = [row[0] for row in eigenvectors]
                 y_eig = [row[1] for row in eigenvectors]
                 z_eig = [row[2] for row in eigenvectors]
-                ax.quiver(x, y, z, x_eig, y_eig, z_eig, color='r', length = 0.7, normalize = True) # Plot the normalized eigenvectors.
+                ax.quiver(x, y, z, x_eig, y_eig, z_eig, color='r', length = 0.7, normalize = True, zorder=2) # Plot the normalized eigenvectors.
                 x_vec = [100*row[0] for row in fiber]
                 y_vec = [100*row[1] for row in fiber]
                 z_vec = [100*row[2] for row in fiber]
-                ax.quiver(x, y, z, x_vec, y_vec, z_vec, color='g', length = 0.7, normalize = True) # Plot the normalized vectors defining the tensor's shape.
+                ax.quiver(x, y, z, x_vec, y_vec, z_vec, color='g', length = 0.7, normalize = True, zorder=3) # Plot the normalized vectors defining the tensor's shape.
             
             for i in range(size): # For each possible unit vector along the gradient direction...
                 for j in range(size):
@@ -115,7 +115,7 @@ def ani(name, S0, fiber, size, eig):
                     Sx[i, j] = np.cos(Phis[j])*np.sin(Thetas[i])*S[i, j]
                     Sy[i, j] = np.sin(Phis[j])*np.sin(Thetas[i])*S[i, j]
                     Sz[i, j] = np.cos(Thetas[i])*S[i, j]
-            ax.plot_surface(Sx, Sy, Sz)
+            ax.plot_surface(Sx, Sy, Sz, zorder=1)
             writer.grab_frame() # Save the entire plot as a frame of the video "surf_name.mp4".
 
 """
@@ -137,7 +137,7 @@ Saves a video entitled "surf_sum.mp4" depicting the eigenvectors of the fiber in
 and the signal profile of the fiber for each diffusion weighting (b value) in blue. Note that the eigenvectors and the vectors determining the fiber's
 shape have been normalized and only depict the direction of each vector, NOT their corresponding magnitude.
 
-* WIP
+* WIP for displaying the vectors.
 """
 def ani_multi(S0, fibers, weightings, size):
     Thetas = np.linspace(0, np.pi, size) # Define the number of gradient unit vector directions.
@@ -161,7 +161,7 @@ def ani_multi(S0, fibers, weightings, size):
     with writer.saving(fig, "surf_sum.mp4", size):
         for b in range(b_start, b_stop + b_step, b_step): # Starting b-value, ending b-value, b-value increment size. All in s/mm^2
             ax = fig.add_subplot(111, projection='3d')
-            ax.set(xlim=(-0.7, 0.7), ylim=(-0.7, 0.7), zlim=(-0.7, 0.7))
+            ax.set(xlim=(-1.25, 1.25), ylim=(-1.25, 1.25), zlim=(-1.25, 1.25))
             ax.set_xlabel('X'), ax.set_ylabel('Y'), ax.set_zlabel('Z')
             for f in range(len(fibers)): # For each fiber...
                 for i in range(size): # And for each possible unit vector along the gradient direction...

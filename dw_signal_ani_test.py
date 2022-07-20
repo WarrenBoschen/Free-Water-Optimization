@@ -30,11 +30,19 @@ start = time.time()
 
 DT0 = dt(2.0e-3, 2.0e-3, 2.0e-3) # Rank-2 isotropic diagonal tensor, DT0 in units of mm^2/s (free water contribution)
 DT =  dt(0.2e-3, 0.2e-3, 1.7e-3) # Single fiber rank-2 anisotropic diagonal tensor, DT1 in units of mm^2/s (oriented along the z-axis)
-DT1 = rotate(DT, np.pi/2, np.pi/4, np.pi/4)  # Rotated DT. Angles correspond to rotation along the z-, y-, and z-axes respectively
 
-ani('D0', 1.0, DT0, 100, False)
-ani('D1', 1.0, DT1, 100, False) #? How do you make the vectors in the "foreground" of the video? Or at the very least mesh with the signal better.
-ani_multi(1.0, [DT0, DT1], [0.5, 0.5], 100)
+# Rotated DT. Angles correspond to rotation along the z-, y-, and z-axes respectively
+DT_x = rotate(DT, 0, np.pi/2, 0)        # Single fiber rank-2 anisotropic diagonal tensor, in units of mm^2/s (oriented along the x-axis)
+DT_y = rotate(DT, 0, np.pi/2, np.pi/2)  # Single fiber rank-2 anisotropic diagonal tensor, in units of mm^2/s (oriented along the y-axis)
+DT_z = DT                               # Single fiber rank-2 anisotropic diagonal tensor, in units of mm^2/s (oriented along the z-axis)
+
+#? How do you make the vectors in the "foreground" of the video? Or at the very least mesh with the signal better.
+#* zorder
+# ani('D0', 1.0, DT0, 100, False)
+# ani('Dx', 1.0, DT_x, 100, False)
+# ani('Dy', 1.0, DT_y, 100, False)
+ani('Dz', 1.0, DT_z, 100, True) 
+# ani_multi(1.0, [DT0, DT_x, DT_y, DT_z], [0.25, 0.25, 0.25, 0.25], 100)
 
 end = time.time()
 print(end - start)
