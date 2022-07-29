@@ -26,25 +26,26 @@ Adapted 20220718    Python adaptation by Warren Boschen
 import time
 from general_functions import *
 
-start = time.time()
+start = time.time() # For keeping track of how long it takes this program to run. Can be deleted if desired.
 
 DT0 = dt(2.0e-3, 2.0e-3, 2.0e-3) # Rank-2 isotropic diagonal tensor, DT0 in units of mm^2/s (free water contribution)
 DT =  dt(0.2e-3, 0.2e-3, 1.7e-3) # Single fiber rank-2 anisotropic diagonal tensor, DT1 in units of mm^2/s (oriented along the z-axis)
+DT1 = rotate(DT, 0, np.pi/4, np.pi/4) # Test tensor.
 
-# Rotated DT. Angles correspond to rotation along the z-, y-, and z-axes respectively
+# Orthogonal diffusion tensors if needed. Angles correspond to rotation around the z-, y-, and z-axes respectively (rotations occur in that order as well)
 DT_x = rotate(DT, 0, np.pi/2, 0)        # Single fiber rank-2 anisotropic diagonal tensor, in units of mm^2/s (oriented along the x-axis)
 DT_y = rotate(DT, 0, np.pi/2, np.pi/2)  # Single fiber rank-2 anisotropic diagonal tensor, in units of mm^2/s (oriented along the y-axis)
 DT_z = DT                               # Single fiber rank-2 anisotropic diagonal tensor, in units of mm^2/s (oriented along the z-axis)
 
 #? How do you make the vectors in the "foreground" of the video? Or at the very least mesh with the signal better.
-#* zorder
-# ani('D0', 1.0, DT0, 100, False)
+#* 3D surface plots do not respect zorder so it can't be that.
+ani('D0', 1.0, DT0, 100, False)
 # ani('Dx', 1.0, DT_x, 100, False)
 # ani('Dy', 1.0, DT_y, 100, False)
-ani('Dz', 1.0, DT_z, 100, True) 
+# ani('Dz', 1.0, DT_z, 100, False) 
 # ani_multi(1.0, [DT0, DT_x, DT_y, DT_z], [0.25, 0.25, 0.25, 0.25], 100)
 
 end = time.time()
 print(end - start)
-# Time elapsed using PNGs as frames: ~14min
-# Time elapsed using writer.grab_frame(): ~7-8min
+# Time elapsed using PNGs as frames for three videos (dw_signal_generalized): ~14min
+# Time elapsed per call of ani or ani_multi (dw_signal_ani_test): ~2.5min

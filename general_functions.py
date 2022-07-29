@@ -10,7 +10,9 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.animation import FFMpegWriter
+import dipy.sims.voxel as vox
 
+#TODO: Try to avoid lists and loops when using numpy, as they slow down the execution speed.
 """
 Define a diagonal diffusion rank-2 tensor/3x3 matrix based on its eigenvalues.
 
@@ -65,12 +67,17 @@ and the signal profile of the fiber for each diffusion weighting (b value) in bl
 shape have been normalized and only depict the direction of each vector, NOT their corresponding magnitude.
 """
 def ani(name, S0, fiber, size, eig):
-    Thetas = np.linspace(0, np.pi, size) # Define the number of gradient unit vector directions.
-    Phis = np.linspace(0, 2*np.pi, size)
+    Theta = np.linspace(0, np.pi, size) # Define the number of gradient unit vector directions.
+    Phi = np.linspace(0, 2*np.pi, size)
+    THETA, PHI = np.meshgrid(Theta, Phi)
+    X = np.sin(THETA) * np.cos(PHI) #!
+    Y = np.sin(THETA) * np.sin(PHI) #!
+    Z = np.cos(THETA) #!
     b_start = 500 # Define the starting b value, the ending b value, and the b value increment size.
     b_stop = 3000
     b_step = 50
-    S = np.zeros((size, size)) # Define four arrays of zeros. S is the composite DTI signal profile and Sx, Sy, and Sz are the Cartesian components of the signal.
+    # Define four arrays of zeros. S is the composite DTI signal profile and Sx, Sy, and Sz are the Cartesian components of the signal. #!
+    S = np.array([X, Y, Z, np.zeros((size, size))])
     Sx = np.zeros((size, size))
     Sy = np.zeros((size, size))
     Sz = np.zeros((size, size))
@@ -83,7 +90,7 @@ def ani(name, S0, fiber, size, eig):
     # Begin calculations and video creation.
     with writer.saving(fig, "surf_{}.mp4".format(name), size):
         for b in range(b_start, b_stop + b_step, b_step): # Starting b-value, ending b-value, b-value increment size. All in s/mm^2
-            ax = fig.add_subplot(111, projection='3d') # Create the plot including its axes and its labels.
+            ax = fig.add_subplot(111, projection='3d') # Create the plot for the signal, including its axes and its labels.
             ax.set(xlim=(-0.7, 0.7), ylim=(-0.7, 0.7), zlim=(-0.7, 0.7))
             ax.set_xlabel('X'), ax.set_ylabel('Y'), ax.set_zlabel('Z')
             
@@ -96,26 +103,38 @@ def ani(name, S0, fiber, size, eig):
                 x_eig = [row[0] for row in eigenvectors]
                 y_eig = [row[1] for row in eigenvectors]
                 z_eig = [row[2] for row in eigenvectors]
-                ax.quiver(x, y, z, x_eig, y_eig, z_eig, color='r', length = 0.7, normalize = True, zorder=2) # Plot the normalized eigenvectors.
+                ax.quiver(x, y, z, x_eig, y_eig, z_eig, color='r', length = 0.7, normalize = True) # Plot the normalized eigenvectors.
                 x_vec = [100*row[0] for row in fiber]
                 y_vec = [100*row[1] for row in fiber]
                 z_vec = [100*row[2] for row in fiber]
-                ax.quiver(x, y, z, x_vec, y_vec, z_vec, color='g', length = 0.7, normalize = True, zorder=3) # Plot the normalized vectors defining the tensor's shape.
-            
+                ax.quiver(x, y, z, x_vec, y_vec, z_vec, color='g', length = 0.7, normalize = True) # Plot the normalized vectors defining the tensor's shape.
+
             for i in range(size): # For each possible unit vector along the gradient direction...
                 for j in range(size):
                     # Create gradient unit vector (g_unit) and transpose (g_unit_T).
-                    g_unit = np.array([[np.cos(Phis[j])*np.sin(Thetas[i])], [np.sin(Phis[j])*np.sin(Thetas[i])], [np.cos(Thetas[i])]])
+                    g_unit = np.array([[np.cos(Phi[j])*np.sin(Theta[i])], [np.sin(Phi[j])*np.sin(Theta[i])], [np.cos(Theta[i])]])
                     g_unit_T = np.transpose(g_unit)
                     
                     # Calculate the DW signal.
-                    S[i, j] = S0*np.exp(-b * np.matmul(np.matmul(g_unit_T, fiber), g_unit))
+                    S[3, i, j] = S0*np.exp(-b * np.matmul(np.matmul(g_unit_T, fiber), g_unit)) #!
+                    
+                    #? How do you add Rician noise? numpy has Rayleigh, normal/Gaussian, and Poisson. scipy has Rician but it's confusing.
+                    #* See the function add_noise here: https://github.com/dipy/dipy/blob/master/dipy/sims/phantom.py.
+                    #TODO: Even the noise a little bit more.
                     
                     # Split the DW signal into its components for plotting.
-                    Sx[i, j] = np.cos(Phis[j])*np.sin(Thetas[i])*S[i, j]
-                    Sy[i, j] = np.sin(Phis[j])*np.sin(Thetas[i])*S[i, j]
-                    Sz[i, j] = np.cos(Thetas[i])*S[i, j]
-            ax.plot_surface(Sx, Sy, Sz, zorder=1)
+                    # Sx[i, j] = np.cos(Phi[j])*np.sin(Theta[i])*S[i, j]
+                    # Sy[i, j] = np.sin(Phi[j])*np.sin(Theta[i])*S[i, j]
+                    # Sz[i, j] = np.cos(Theta[i])*S[i, j]
+            S = vox.add_noise(S, 2.0, 0.5) #!
+            
+            # Split the DW signal into its components for plotting.
+            for i in range(size):
+                for j in range(size):
+                    Sx[i, j] = np.cos(Phi[j])*np.sin(Theta[i])*S[3, i, j]
+                    Sy[i, j] = np.sin(Phi[j])*np.sin(Theta[i])*S[3, i, j]
+                    Sz[i, j] = np.cos(Theta[i])*S[3, i, j]
+            ax.plot_surface(Sx, Sy, Sz) #* Add color='' if a specific color is desired.
             writer.grab_frame() # Save the entire plot as a frame of the video "surf_name.mp4".
 
 """
