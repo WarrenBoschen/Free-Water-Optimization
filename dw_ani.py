@@ -1,5 +1,5 @@
 """
-Diffusion Weighted Signal
+Diffusion Weighted Signal Animated
 Objective: Calculate the diffusion weighted signal in a voxel
 
 Assumptions:
@@ -24,7 +24,7 @@ Adapted 20220718    Python adaptation by Warren Boschen
 """
 
 import time
-from general_functions import *
+from signal_calcs import *
 
 start = time.time() # For keeping track of how long it takes this program to run. Can be deleted if desired.
 

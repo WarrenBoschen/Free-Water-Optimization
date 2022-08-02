@@ -29,7 +29,7 @@ import os
 import ffmpeg
 import shutil
 import time
-from general_functions import *
+from signal_calcs import *
 
 start = time.time()
 

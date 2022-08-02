@@ -29,7 +29,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.animation import FFMpegWriter
 import time
-from general_functions import *
+from signal_calcs import *
 
 start = time.time()
 

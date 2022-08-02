@@ -1,26 +1,12 @@
-import plotly.graph_objects as go
+
 import numpy as np
-
-x = np.arange(0.1,1.1,0.1)
-y = np.linspace(-np.pi,np.pi,10)
-#print(x)
-#print(y)
-
-X,Y = np.meshgrid(x,y)
-#print(X)
-#print(Y)
-result = []
-
-for i,j in zip(X,Y):
-    result.append(np.log(i)+np.sin(j)) 
-
-result[0][0] = float("nan")
-
-upper_bound = np.array(result)+1
-lower_bound = np.array(result)-1
-
-fig = go.Figure(data=[
-    go.Surface(z=result),
-    go.Surface(z=upper_bound, showscale=False, opacity=0.3,colorscale='purp'),
-    go.Surface(z=lower_bound, showscale=False, opacity=0.3,colorscale='purp')])
-fig.show()
+size = 100
+Theta = np.linspace(0, np.pi, size) # Define the number of gradient unit vector directions.
+Phi = np.linspace(0, 2*np.pi, size)
+THETA, PHI = np.meshgrid(Theta, Phi)
+X = np.sin(THETA) * np.cos(PHI)
+print(X.shape)
+Y = np.sin(THETA) * np.sin(PHI)
+print(Y.shape)
+Z = np.cos(THETA)
+print(Z.shape)
